@@ -22,7 +22,7 @@ app.UseCors(options =>
         .AllowAnyHeader()
         .AllowCredentials()
         .AllowAnyMethod()
-        .WithOrigins("https://localhost:44495/");
+        .WithOrigins("https://localhost:44495");
 });
 
 app.MapHub<GameHub>("/gamehub");
