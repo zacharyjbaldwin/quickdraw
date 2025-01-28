@@ -1,32 +1,27 @@
-import { Component, OnInit } from '@angular/core';
-import { GameService } from './services/game.service';
+import { Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { GameService, UserScore } from './services/game.service';
 import { BsModalService } from 'ngx-bootstrap/modal';
 import { DisplayNameModalComponent } from './shared/display-name-modal/display-name-modal.component';
 
 @Component({
   selector: 'app-root',
-  templateUrl: './app.component.html'
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
 })
 export class AppComponent implements OnInit {
   
-  title = 'app';
-
-  public userList: string[] = [];
+  public userList: UserScore[] = [];
+  public hasPickedDisplayName: boolean = false;
+  @ViewChild("target", { static: false }) target: ElementRef;
 
   constructor(
     private _gameService: GameService,
     private _modalService: BsModalService
   ) { }
 
-  ngOnInit(): void {
-    // this._gameService.start("Zachary " + new Date().getSeconds());
-    
-    this.openDisplayNameModal();
-    
-    this.initializeListeners();
-  }
+  public userList$ = this._gameService.userList$;
 
-  private openDisplayNameModal(): void {
+  ngOnInit(): void {       
     const modal = this._modalService.show(DisplayNameModalComponent, {
       initialState: {},
       backdrop: 'static',
@@ -35,19 +30,33 @@ export class AppComponent implements OnInit {
     });
 
     modal.content.pickedDisplayName.subscribe({
-      next: (displayName) => {
+      next: (displayName: string) => {
         this._gameService.start(displayName);
+        this.hasPickedDisplayName = true;
         modal.hide();
+
+        setTimeout(() => {
+          this.resetTarget();
+        }, 0)
       }
+    });
+
+    this.userList$.subscribe({
+      next: () => { this.resetTarget(); }
     })
   }
 
-  private initializeListeners(): void {
-    this._gameService.userList$.subscribe({
-      next: (userList) => {
-        this.userList = userList;
-        console.log(this.userList);
-      }
-    })
+  public incrementScore(): void {
+    this._gameService.incrementScore();
+    this.resetTarget();
+  }
+
+  public resetTarget(): void {
+    if (this.target) {
+      const top = Math.floor(Math.random() * 100) + 1;
+      this.target.nativeElement.style.top = `calc(${top}% + ${top > 50 ? '-100' : '100'}px)`;
+      const left = Math.floor(Math.random() * 100) + 1;
+      this.target.nativeElement.style.left = `calc(${left}% + ${top > 50 ? '-100' : '100'}px)`;
+    }
   }
 }

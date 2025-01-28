@@ -8,7 +8,7 @@ import { BehaviorSubject } from 'rxjs';
 export class GameService {
 
   private connection: signalR.HubConnection;
-  public userList$ = new BehaviorSubject<string[]>([]);
+  public userList$ = new BehaviorSubject<UserScore[]>([]);
 
   constructor() { }
 
@@ -33,10 +33,19 @@ export class GameService {
   }
 
   private initializeListeners(): void {
-    this.connection.on("UpdateUserList", (userList: string[]) => { this.userList$.next(userList) });
+    this.connection.on("UpdateScore", (userList: UserScore[]) => { this.userList$.next(userList) });
   }
 
   private joinGame(displayName: string): void {
     this.connection.invoke("JoinGame", displayName);
   }
+
+  public incrementScore(): void {
+    this.connection.invoke("IncrementScore");
+  }
+}
+
+export interface UserScore {
+  displayName: string;
+  score: number;
 }
